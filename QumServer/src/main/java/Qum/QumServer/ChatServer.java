@@ -18,15 +18,15 @@ public class ChatServer {
     public static List<Mess> MessList = new CopyOnWriteArrayList<Mess>();
     public static Map<String, ClientUnit> ClientThreads = new ConcurrentHashMap<String, ClientUnit>();
     private static int tempNuberOfClientThtead = 0;
-    private static String tempNameOfClientThtead; //временное имя потока под которым мы его покладем в мапу, когда клиент на нем авторизируется то он заменится на его Ник.
+    private static String tempNameOfClientThtead; //временное имя потока под которым мы его кладем в мапу,a когда клиент на нем авторизируется он заменится на его Ник.
 
     public static void main(String[] args) {
 	
 	okno.main(args);
-	ServerSocket SS; // tt
+	ServerSocket SS; 
 	
 	try {
-	    SS = new ServerSocket(9090, 350);
+	    SS = new ServerSocket(9090, 1000);
 	    while (true) {
 		tempNuberOfClientThtead++;  // генерим циферку для временного имени очередного клиента.
 		tempNameOfClientThtead = "Client Thread number "

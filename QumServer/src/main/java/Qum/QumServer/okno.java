@@ -47,54 +47,54 @@ public class okno extends JPanel {
     private static File prop;
     private static Properties sett;
     private FileInputStream in;
-    static int win_WIDTH = 110;
-    static int win_HEIGHT = 110;
+    static int win_WIDTH = 400;
+    static int win_HEIGHT = 200;
 
     okno() {
 	super(new GridBagLayout());
-	String root_papka = System.getProperty("user.home");
-	File propdr = new File(root_papka, ".chatik");
-	if (!propdr.exists())
-	    propdr.mkdir();
-	prop = new File(propdr, "chat.ini");
-	Properties def_sett = new Properties();
-	def_sett.put("Nick", "");
+//	String root_papka = System.getProperty("user.home");
+//	File propdr = new File(root_papka, ".chatik");
+//	if (!propdr.exists())
+//	    propdr.mkdir();
+//	prop = new File(propdr, "chat.ini");
+//	Properties def_sett = new Properties();
+//	def_sett.put("Nick", "");
 	// def_sett.put("ширина окна", "400");
 	// def_sett.put("высота окна", "250");
 
-	sett = new Properties(def_sett);
+//	sett = new Properties(def_sett);
 
-	if (prop.exists()) {
-	    try {
-		in = new FileInputStream(prop);
-		sett.load(in);
-	    } catch (IOException e) {
-		System.out.println("Фреймчат : Трабла с загрузкой конфига");
-	    } finally {
-		try {
-		    in.close();
-		} catch (IOException e1) {
-		    System.out
-			    .println("Фреймчат : Трабла с закрытием файлстрима");
-		    e1.printStackTrace();
-		}
-	    }
-	}
-	MyNick = sett.getProperty("Nick");
-	if (sett.getProperty("Nick") == null)
-	    greetingQuest();
+//	if (prop.exists()) {
+//	    try {
+//		in = new FileInputStream(prop);
+//		sett.load(in);
+//	    } catch (IOException e) {
+//		System.out.println("Фреймчат : Трабла с загрузкой конфига");
+//	    } finally {
+//		try {
+//		    in.close();
+//		} catch (IOException e1) {
+//		    System.out
+//			    .println("Фреймчат : Трабла с закрытием файлстрима");
+//		    e1.printStackTrace();
+//		}
+//	    }
+//	}
+//	MyNick = sett.getProperty("Nick");
+//	if (sett.getProperty("Nick") == null)
+//	    greetingQuest();
 	// else {
 	//
 	// }
-	if (sett.getProperty("WIDTH") != null) {
-	    win_WIDTH = Integer.parseInt(sett.getProperty("WIDTH"));
-	    win_HEIGHT = Integer.parseInt(sett.getProperty("HEIGHT"));
-	} else {
-	    win_WIDTH = 200;
-	    win_HEIGHT = 350;
-	}
-	if (MyNick.isEmpty())
-	    greetingQuest();
+//	if (sett.getProperty("WIDTH") != null) {
+//	    win_WIDTH = Integer.parseInt(sett.getProperty("WIDTH"));
+//	    win_HEIGHT = Integer.parseInt(sett.getProperty("HEIGHT"));
+//	} else {
+//	    win_WIDTH = 200;
+//	    win_HEIGHT = 350;
+//	}
+//	if (MyNick.isEmpty())
+//	    greetingQuest();
 
 	Tf = new JTextField(20);
 	Ta = new JTextArea(5, 20);
@@ -212,24 +212,24 @@ public class okno extends JPanel {
 		}
 	    }
 	});
-
-	frame.addWindowListener(new WindowAdapter() { // сейвим пропы по
-	    // закрытию окна
-	    public void windowClosing(WindowEvent event) {
-		sett.put("WIDTH", "" + frame.getWidth());
-		sett.put("HEIGHT", "" + frame.getHeight());
-		sett.put("Nick", MyNick);
-
-		try {
-		    FileOutputStream out = new FileOutputStream(prop);
-		    sett.store(out, "prog options");
-		} catch (IOException e) {
-		    System.out
-			    .println("Фреймчат : какаето хуйня с сейвом пропов");
-		}
-	    }
-
-	});
+//
+//	frame.addWindowListener(new WindowAdapter() { // сейвим пропы по
+//	    // закрытию окна
+//	    public void windowClosing(WindowEvent event) {
+//		sett.put("WIDTH", "" + frame.getWidth());
+//		sett.put("HEIGHT", "" + frame.getHeight());
+//		sett.put("Nick", MyNick);
+//
+//		try {
+//		    FileOutputStream out = new FileOutputStream(prop);
+//		    sett.store(out, "prog options");
+//		} catch (IOException e) {
+//		    System.out
+//			    .println("Фреймчат : какаето хуйня с сейвом пропов");
+//		}
+//	    }
+//
+//	});
 	frame.setSize(win_WIDTH, win_HEIGHT);
     }
 
