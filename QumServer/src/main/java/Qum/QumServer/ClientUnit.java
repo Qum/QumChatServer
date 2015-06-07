@@ -126,6 +126,7 @@ public class ClientUnit extends Thread {
 		onlineStatus = false;
 		ygeSoobwilProVuhod = true;
 	    }
+	    ChatServer.ClientThreads.remove(userName);
 	    try {
 		if (Sock != null && Sock.isConnected()) {
 		    Sock.close();
