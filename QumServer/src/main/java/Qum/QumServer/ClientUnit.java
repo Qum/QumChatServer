@@ -88,7 +88,7 @@ public class ClientUnit extends Thread {
 		    } else if (BuffMess.getServiceCode() == FILE_REQUEST_FAIL) {
 			doNotifySander(BuffMess.getValue1(), false);
 		    } else if (BuffMess.getServiceCode() == CHANGE_NAME) {
-			// TO DO 
+			doChangeNname();
 		    } else if (BuffMess.getServiceCode() == CHANGE_NAME_SUCCESS) {
 			// TO DO
 		    } else if (BuffMess.getServiceCode() == CHANGE_NAME_FAIL) {
@@ -126,13 +126,23 @@ public class ClientUnit extends Thread {
 		onlineStatus = false;
 		ygeSoobwilProVuhod = true;
 	    }
-	    ChatServer.ClientThreads.remove(userName);
+	    if (ChatServer.ClientThreads.containsKey(userName)) {
+		ChatServer.ClientThreads.remove(userName);
+	    } else if (ChatServer.ClientThreads.containsKey(myTempName)) {
+		ChatServer.ClientThreads.remove(myTempName);
+	    }
 	    try {
 		if (Sock != null && Sock.isConnected()) {
 		    Sock.close();
 		}
 	    } catch (IOException e) {
 	    }
+	}
+    }
+
+    private void doChangeNname() {
+	if (userExistInDb(BuffMess.getValue1()) == false) {
+	    // TO DO
 	}
     }
 
@@ -185,7 +195,7 @@ public class ClientUnit extends Thread {
     }
 
     private void doRegister() throws IOException {
-	if (!userExistInDb()) {
+	if (!userExistInDb(BuffMess.getValue1())) {
 	    MyLogger.debug("Clientunit.doRegister in "
 		    + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
@@ -228,8 +238,8 @@ public class ClientUnit extends Thread {
     private void doAuth() throws IOException {
 	MyLogger.info("Clientunit.doAuth in "
 		+ (userName == null ? myTempName : userName));
-	if (userExistInDb()) {
-	    if (checkAuthData()) {
+	if (userExistInDb(BuffMess.getValue1())) {
+	    if (checkAuthData(BuffMess.getValue1())) {
 		MyLogger.debug("Clientunit.doAuth in "
 			+ (userName == null ? myTempName : userName)
 			+ " username-pass confirmed");
@@ -252,8 +262,8 @@ public class ClientUnit extends Thread {
 			ChatServer.MessList.add(new Mess(dateFormat
 				.format(date) + " " + "SYS ", ">>>>>>>>>>>>"
 				+ userName + " - зашел в чат"));
-			Oou.writeObject(new Mess("SYS",
-				"Авторизация прошла успешно",
+			Oou.writeObject(new Mess(userName,
+				"Авторизация прошла успешно.",
 				SUCCESS_AUTH_SUCCESS_ONLINE));
 			MyLogger.debug("Clientunit.doAuth in "
 				+ (userName == null ? myTempName : userName)
@@ -280,7 +290,7 @@ public class ClientUnit extends Thread {
 	}
     }
 
-    private boolean checkAuthData() {
+    private boolean checkAuthData(String name) {
 
 	String resultPass = null;
 	PreparedStatement ps;
@@ -292,7 +302,7 @@ public class ClientUnit extends Thread {
 		    + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
 	    ps = con.prepareStatement(CheckUserExist);
-	    ps.setString(1, BuffMess.getValue1());
+	    ps.setString(1, name);
 	    ps.execute();
 	    rs = ps.getResultSet();
 	    while (rs.next()) {
@@ -315,7 +325,7 @@ public class ClientUnit extends Thread {
 		: false);
     }
 
-    private boolean userExistInDb() {
+    private boolean userExistInDb(String Name) {
 
 	PreparedStatement ps;
 	ResultSet rs;
@@ -326,7 +336,7 @@ public class ClientUnit extends Thread {
 		    + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
 	    ps = con.prepareStatement(CheckUserExist);
-	    ps.setString(1, BuffMess.getValue1());
+	    ps.setString(1, Name);
 	    ps.execute();
 	    rs = ps.getResultSet();
 	    while (rs.next()) {
