@@ -188,7 +188,7 @@ public class ClientUnit extends Thread {
     private void reciverDecision(String reciverName, String ip, boolean answer)
 	    throws IOException {
 	if (answer == true) {
-	    Oou.writeObject(new Mess(reciverName, "", FILE_REQUEST_SUCCESS));
+	    Oou.writeObject(new Mess(reciverName, ip, FILE_REQUEST_SUCCESS));
 	} else if (answer == false) {
 	    Oou.writeObject(new Mess(reciverName, "", FILE_REQUEST_FAIL));
 	}
