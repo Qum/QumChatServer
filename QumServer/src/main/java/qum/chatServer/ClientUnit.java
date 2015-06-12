@@ -1,4 +1,4 @@
-package qum.QumServer;
+package qum.chatServer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -20,7 +20,7 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 
-import qum.Mes.Mess;
+import qum.messageClass.Mess;
 
 public class ClientUnit extends Thread {
 

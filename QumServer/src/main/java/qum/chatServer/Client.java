@@ -1,4 +1,4 @@
-package qum.QumServer;
+package qum.chatServer;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import qum.Mes.Mess;
+import qum.messageClass.Mess;
 
 public class Client implements Runnable {
 

@@ -1,4 +1,4 @@
-package qum.QumServer;
+package qum.chatServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
 
-import qum.Mes.Mess;
+import qum.messageClass.Mess;
 
 public class ChatServer {
 

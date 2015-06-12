@@ -1,4 +1,4 @@
-package qum.Mes;
+package qum.messageClass;
 
 import java.io.Serializable;
 

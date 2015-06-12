@@ -1,4 +1,4 @@
-package qum.QumServer;
+package qum.chatServer;
 
 import java.beans.PropertyVetoException;
 import java.sql.Connection;

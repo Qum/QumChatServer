@@ -1,4 +1,4 @@
-package qum.QumServer;
+package qum.chatServer;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -28,7 +28,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import qum.Mes.Mess;
+import qum.messageClass.Mess;
 
 public class okno extends JPanel {
     // implements ActionListener {

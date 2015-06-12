@@ -1,4 +1,4 @@
-package qum.QumServer;
+package qum.chatServer;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
