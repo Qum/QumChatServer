@@ -1,6 +1,4 @@
-package Qum.QumServer;
-
-import Qum.Mes.Mess;
+package qum.QumServer;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -13,6 +11,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import qum.Mes.Mess;
 
 public class Client implements Runnable {
 
@@ -31,7 +31,7 @@ public class Client implements Runnable {
     public void run() {
 
 	System.out.println(Thread.currentThread()
-		+ "SockManager : sockStart вошeл в run");
+		+ "SockManager : sockStart enter in run");
 	GetSocket();
 
 	GetStreams();
@@ -49,27 +49,20 @@ public class Client implements Runnable {
 
 	    e.printStackTrace();
 	}
-
     }
 
     private void Work() {
 	try {
-	    // posled = In_Mess.size();
-
 	    Oou.writeObject(new Mess("root", "K95NM567FBEKL3278S5N3",
 		    ClientUnit.AUTH_REQUEST));
 	    while (true) {
 		BuffMesObj = (Mess) Oin.readObject();
 		okno.Ta.append(BuffMesObj.getValue1() + " : "
 			+ BuffMesObj.getValue2() + newline);
-
 	    }
-
 	} catch (IOException e) {
-
 	    e.printStackTrace();
 	} catch (ClassNotFoundException e) {
-
 	    e.printStackTrace();
 	} finally {
 	    try {
@@ -80,43 +73,23 @@ public class Client implements Runnable {
 		e.printStackTrace();
 	    }
 	}
-
     }
 
     private Socket GetSocket() {
-	try {
-	    System.out.println(Thread.currentThread()
-		    + "SockManager : вошeл в трай сокета");
-	    Sock = new Socket(InetAddress.getByName("109.87.60.178"), 9090);
-	    return Sock;
-	} catch (IOException e) {
-	    System.out
-		    .println(Thread.currentThread()
-			    + "SockManager : вошeл в кеч , трабла  ран-трай сокетстарта");
-	    okno.Ta.append(("SYS : нету соединения с сервером(возможно он выключен), либо у программы проблемы ")
-		    + newline
-		    + (" с выходом в итерне.Попробуйте ")
-		    + newline
-		    + ("антивирусне программы или фаерволл."));
-	    try {
-		Sock.close();
-		System.out
-			.println(Thread.currentThread()
-				+ "SockManager : трабла  ран-трай сокета1111, вошeл в трай, закрылся сокет");
-	    } catch (IOException e1) {
-		System.out
-			.println(Thread.currentThread()
-				+ "SockManager : трабла  ран-трай сокета1111-трай-кач ИО");
-		e1.printStackTrace();
-	    } catch (NullPointerException e1) {
-		System.out
-			.println(Thread.currentThread()
-				+ "SockManager : трабла  ран-трай сокета1111-трай-нуллпоинтер");
-	    }
-	    System.out.println(Thread.currentThread()
-		    + "SockManager : трабла  ран-трай сокета");
-	    e.printStackTrace();
+		try {
+			Sock = new Socket(InetAddress.getByName("109.87.60.178"), 9090);
+			return Sock;
+		} catch (IOException e) {
+			okno.Ta.append(("SYS : connection lost !!"));
+			try {
+				Sock.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			} catch (NullPointerException e1) {
+				
+			}
+			e.printStackTrace();
+		}
+		return null;
 	}
-	return null;
-    }
 }

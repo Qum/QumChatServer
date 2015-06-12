@@ -1,4 +1,4 @@
-package Qum.QumServer;
+package qum.QumServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
 
-import Qum.Mes.Mess;
+import qum.Mes.Mess;
 
 public class ChatServer {
 
@@ -18,21 +18,20 @@ public class ChatServer {
     public static List<Mess> MessList = new CopyOnWriteArrayList<Mess>();
     public static Map<String, ClientUnit> ClientThreads = new ConcurrentHashMap<String, ClientUnit>();
     private static int tempNuberOfClientThtead = 0;
-    private static String tempNameOfClientThtead; //временное имя потока под которым мы его кладем в мапу,a когда клиент на нем авторизируется он заменится на его Ник.
+    private static String tempNameOfClientThtead;
 
     public static void main(String[] args) {
-	
 	okno.main(args);
-	ServerSocket SS; 
-	
+	ServerSocket SS;
 	try {
-	    SS = new ServerSocket(9090, 1000);
+	    SS = new ServerSocket(9090, 350);
 	    while (true) {
-		tempNuberOfClientThtead++;  // генерим циферку для временного имени очередного клиента.
+		tempNuberOfClientThtead++;
 		tempNameOfClientThtead = "Client Thread number "
 			+ tempNuberOfClientThtead;
 		Socket S = SS.accept();
 		MyLogger.info("New connect nubmer - " + tempNuberOfClientThtead);
+//		Thread ClientUnitTh = new Thread(
 		ClientUnit ClientUnitTh = new ClientUnit(
 			tempNameOfClientThtead, S);
 		ClientThreads.put(tempNameOfClientThtead, ClientUnitTh);

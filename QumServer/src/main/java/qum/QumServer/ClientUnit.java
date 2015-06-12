@@ -1,4 +1,4 @@
-package Qum.QumServer;
+package qum.QumServer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -20,7 +20,7 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 
-import Qum.Mes.Mess;
+import qum.Mes.Mess;
 
 public class ClientUnit extends Thread {
 
@@ -37,6 +37,7 @@ public class ClientUnit extends Thread {
     public Mess BuffMess;
     private String myTempName;
     private String userName;
+    private String userPass;
     private Connection con;
     private boolean onlineStatus, ygeSoobwilProVuhod;
 
@@ -51,12 +52,12 @@ public class ClientUnit extends Thread {
     final static int FILE_REQUEST_SUCCESS = 9;
     final static int FILE_REQUEST_FAIL = 10;
     final static int LOGOUT = 11;
-    final static int CHANGE_NAME = 12;
-    final static int CHANGE_NAME_SUCCESS = 13;
-    final static int CHANGE_NAME_FAIL = 14;
 
     private final String RegisterQuery = "INSERT INTO users(login,pass,acc_lvl,last_ip,email) VALUES(?,?,?,?,?)";
     private final String CheckUserExist = "SELECT * FROM users WHERE login=(?)";
+
+    // private final String CheckUserExist =
+    // "SELECT * FROM users WHERE login I ?";
 
     ClientUnit(String tempName, Socket s) throws IOException {
 	myTempName = tempName;
@@ -85,16 +86,21 @@ public class ClientUnit extends Thread {
 			iWantSendFile(BuffMess.getValue1());
 		    } else if (BuffMess.getServiceCode() == FILE_REQUEST_SUCCESS) {
 			doNotifySander(BuffMess.getValue1(), true);
-		    } else if (BuffMess.getServiceCode() == FILE_REQUEST_FAIL) {
-			doNotifySander(BuffMess.getValue1(), false);
-		    } else if (BuffMess.getServiceCode() == CHANGE_NAME) {
-			doChangeNname();
-		    } else if (BuffMess.getServiceCode() == CHANGE_NAME_SUCCESS) {
-			// TO DO
-		    } else if (BuffMess.getServiceCode() == CHANGE_NAME_FAIL) {
-			// TO DO
 		    } else if (BuffMess.getServiceCode() == LOGOUT) {
-			doLogout();
+			if (onlineStatus) {
+			    ChatServer.MessList.add(new Mess(dateFormat
+				    .format(date) + " " + "SYS ",
+				    ">>>>>>>>>>>> " + userName + " - logout."));
+			    onlineStatus = false;
+			    if (!ChatServer.ClientThreads
+				    .remove(userName, this)) {
+				MyLogger.error("not removed from the collection!");
+			    } else {
+				MyLogger.debug(userName
+					+ " has been removed from collection.");
+			    }
+			}
+			ygeSoobwilProVuhod = true;
 		    }
 		} else if (onlineStatus) {
 		    BuffMess.setValue1(dateFormat.format(date) + " " + userName);
@@ -105,7 +111,10 @@ public class ClientUnit extends Thread {
 	    MyLogger.warn("ClientUnit "
 		    + (userName == null ? myTempName : userName)
 		    + " throw SocketException" + ex);
-	} catch (ClassNotFoundException e) {
+	    return;
+	}
+
+	catch (ClassNotFoundException e) {
 	    MyLogger.warn("Clientunit "
 		    + (userName == null ? myTempName : userName)
 		    + " throw ClassNotFoundException" + e);
@@ -119,73 +128,73 @@ public class ClientUnit extends Thread {
 	    MyLogger.info("Clientunit "
 		    + (userName == null ? myTempName : userName)
 		    + " enter in finally block");
-	    if (onlineStatus && !ygeSoobwilProVuhod) {
-		ChatServer.MessList
-			.add(new Mess(dateFormat.format(date) + " " + "SYS ",
-				">>>>>>>>>>>> " + userName + " - DISCONNECT"));
-		onlineStatus = false;
-		ygeSoobwilProVuhod = true;
-	    }
-	    if (ChatServer.ClientThreads.containsKey(userName)) {
-		ChatServer.ClientThreads.remove(userName);
-	    } else if (ChatServer.ClientThreads.containsKey(myTempName)) {
-		ChatServer.ClientThreads.remove(myTempName);
+	    if (onlineStatus) {
+		if (!ygeSoobwilProVuhod) {
+		    ChatServer.MessList.add(new Mess(dateFormat.format(date)
+			    + " " + "SYS ", ">>>>>>>>>>>> " + userName
+			    + " - DISCONNECT"));
+		    onlineStatus = false;
+		    ygeSoobwilProVuhod = true;
+		}
 	    }
 	    try {
-		if (Sock != null && Sock.isConnected()) {
+		if (Sock != null) {
 		    Sock.close();
 		}
 	    } catch (IOException e) {
+		e.printStackTrace();
 	    }
 	}
     }
 
-    private void doChangeNname() {
-	if (userExistInDb(BuffMess.getValue1()) == false) {
-	    // TO DO
-	}
-    }
-
-    private void doLogout() {
-	if (onlineStatus) {
-	    ChatServer.MessList.add(new Mess(dateFormat.format(date) + " "
-		    + "SYS ", ">>>>>>>>>>>> " + userName + " - вышел из чата"));
-	    onlineStatus = false;
-	    if (ChatServer.ClientThreads.remove(userName) != null) {
-		MyLogger.debug(userName + " вышел logut");
-	    } else {
-		MyLogger.error("!!!!!!!!!!!не удален из мапы DO OUT METHOD!!!!!!!!!!!!");
-	    }
-	}
-	ygeSoobwilProVuhod = true;
-    }
-
-    private void doNotifySander(String senderNick, boolean reciverAnswer)
+    private void doNotifySander(String senderNick, boolean reciverAnswer) // notifies
+									  // the
+									  // sender
+									  // thread
+									  // of
+									  // the
+									  // decision
+									  // on
+									  // who
+									  // receives
+									  // the
+									  // file
 	    throws IOException {
-	if (reciverAnswer == true) {
-	    ChatServer.ClientThreads.get(senderNick).reciverDecision(userName,
-		    Sock.getInetAddress().getHostAddress(), reciverAnswer);
-	} else {
-	    ChatServer.ClientThreads.get(senderNick).reciverDecision(userName,
-		    senderNick, reciverAnswer);
-	}
 
+	if (reciverAnswer == true) {
+	    ChatServer.ClientThreads.get(senderNick).returnRequestAnswer(
+		    userName, Sock.getInetAddress().getHostAddress(),
+		    reciverAnswer);
+	} else {
+	    ChatServer.ClientThreads.get(senderNick).returnRequestAnswer(
+		    userName, "", reciverAnswer);
+	}
     }
 
-    public void doFileRecivRequest(String sender, String fileName, long size,
+    public void doFileRecivRequest(String sender, String fileName, long size, // send
+									      // to
+									      // our
+									      // client
+									      // request
+									      // for
+									      // recive
+									      // files
 	    String Ip) throws IOException {
 
 	Oou.writeObject(new Mess(sender, fileName, size, Ip, FILE_REQUEST));
     }
 
-    public void iWantSendFile(String reciverNick) throws IOException {
+    public void iWantSendFile(String reciverNick) throws IOException { // init
+								       // question
+								       // process
 
 	ChatServer.ClientThreads.get(reciverNick).doFileRecivRequest(
 		this.userName, BuffMess.getValue2(), BuffMess.getFileSize(),
 		Sock.getInetAddress().getHostAddress());
     }
 
-    private void reciverDecision(String reciverName, String ip, boolean answer)
+    private void returnRequestAnswer(String reciverName, String ip,
+	    boolean answer)// return answer to sander thread of ClientUnit
 	    throws IOException {
 	if (answer == true) {
 	    Oou.writeObject(new Mess(reciverName, ip, FILE_REQUEST_SUCCESS));
@@ -195,7 +204,7 @@ public class ClientUnit extends Thread {
     }
 
     private void doRegister() throws IOException {
-	if (!userExistInDb(BuffMess.getValue1())) {
+	if (!userExistInDb()) {
 	    MyLogger.debug("Clientunit.doRegister in "
 		    + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
@@ -210,9 +219,8 @@ public class ClientUnit extends Thread {
 		ps.execute();
 		onlineStatus = true;
 		userName = BuffMess.getValue1();
-		ChatServer.MessList
-			.add(new Mess(dateFormat.format(date) + " " + "SYS ",
-				">>>>>>>>>>>>" + userName + " - зашел в чат"));
+		ChatServer.MessList.add(new Mess(dateFormat.format(date) + " "
+			+ "SYS ", ">>>>>>>>>>>>" + userName + " - online"));
 		Oou.writeObject(new Mess(BuffMess.getValue1(), " ",
 			REGISTER_SUCCESS));
 	    } catch (SQLException e) {
@@ -238,14 +246,13 @@ public class ClientUnit extends Thread {
     private void doAuth() throws IOException {
 	MyLogger.info("Clientunit.doAuth in "
 		+ (userName == null ? myTempName : userName));
-	if (userExistInDb(BuffMess.getValue1())) {
-	    if (checkAuthData(BuffMess.getValue1())) {
+	if (userExistInDb()) {
+	    if (checkAuthData()) {
 		MyLogger.debug("Clientunit.doAuth in "
 			+ (userName == null ? myTempName : userName)
 			+ " username-pass confirmed");
 		if (ChatServer.ClientThreads.containsKey(BuffMess.getValue1())) {
-		    Oou.writeObject(new Mess("SYS",
-			    "Такой пользователь уже(ещё) активен в чате",
+		    Oou.writeObject(new Mess("SYS", "this user already online",
 			    SUCCESS_AUTH_ALREADY_ONLINE));
 		    MyLogger.debug("Clientunit.doAuth in "
 			    + (userName == null ? myTempName : userName)
@@ -254,6 +261,8 @@ public class ClientUnit extends Thread {
 		    MyLogger.debug("Clientunit.doAuth in "
 			    + (userName == null ? myTempName : userName)
 			    + " is not online");
+		    // change tem name for our thread to the name of which is
+		    // given after authorized
 		    if (ChatServer.ClientThreads.remove(myTempName, this)) {
 			ChatServer.ClientThreads
 				.put(BuffMess.getValue1(), this);
@@ -261,9 +270,8 @@ public class ClientUnit extends Thread {
 			onlineStatus = true;
 			ChatServer.MessList.add(new Mess(dateFormat
 				.format(date) + " " + "SYS ", ">>>>>>>>>>>>"
-				+ userName + " - зашел в чат"));
-			Oou.writeObject(new Mess(userName,
-				"Авторизация прошла успешно.",
+				+ userName + " - online."));
+			Oou.writeObject(new Mess("SYS", "- online.",
 				SUCCESS_AUTH_SUCCESS_ONLINE));
 			MyLogger.debug("Clientunit.doAuth in "
 				+ (userName == null ? myTempName : userName)
@@ -275,22 +283,20 @@ public class ClientUnit extends Thread {
 		    }
 		}
 	    } else {
-		Oou.writeObject(new Mess("SYS", "Неверный Логин,или пароль",
-			AUTH_FAIL));
+		Oou.writeObject(new Mess("SYS", "wrong auth data", AUTH_FAIL));
 		MyLogger.debug("Clientunit.doAuth in "
 			+ (userName == null ? myTempName : userName)
 			+ " username-pass not confirmed");
 	    }
 	} else {
-	    Oou.writeObject(new Mess("SYS", "Неверный Логин,или пароль",
-		    AUTH_FAIL));
+	    Oou.writeObject(new Mess("SYS", "wrong auth data", AUTH_FAIL));
 	    MyLogger.debug("Clientunit.doAuth in "
 		    + (userName == null ? myTempName : userName)
 		    + " username not existing");
 	}
     }
 
-    private boolean checkAuthData(String name) {
+    private boolean checkAuthData() {
 
 	String resultPass = null;
 	PreparedStatement ps;
@@ -302,7 +308,7 @@ public class ClientUnit extends Thread {
 		    + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
 	    ps = con.prepareStatement(CheckUserExist);
-	    ps.setString(1, name);
+	    ps.setString(1, BuffMess.getValue1());
 	    ps.execute();
 	    rs = ps.getResultSet();
 	    while (rs.next()) {
@@ -325,7 +331,7 @@ public class ClientUnit extends Thread {
 		: false);
     }
 
-    private boolean userExistInDb(String Name) {
+    private boolean userExistInDb() {
 
 	PreparedStatement ps;
 	ResultSet rs;
@@ -336,7 +342,7 @@ public class ClientUnit extends Thread {
 		    + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
 	    ps = con.prepareStatement(CheckUserExist);
-	    ps.setString(1, Name);
+	    ps.setString(1, BuffMess.getValue1());
 	    ps.execute();
 	    rs = ps.getResultSet();
 	    while (rs.next()) {

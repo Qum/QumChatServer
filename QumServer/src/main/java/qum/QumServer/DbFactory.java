@@ -1,4 +1,4 @@
-package Qum.QumServer;
+package qum.QumServer;
 
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
@@ -16,7 +16,7 @@ public class DbFactory {
 	    instance = new DbFactory();
 	} catch (Exception e) {
 	    throw new RuntimeException(
-		    "При создании объекта «DbFactory» произошла ошибка");
+		    "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅDbFactoryпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ");
 	}
     }
 

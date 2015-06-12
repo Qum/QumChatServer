@@ -1,4 +1,4 @@
-package Qum.QumServer;
+package qum.QumServer;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -33,7 +33,7 @@ public class DeamonOutMess implements Runnable {
 					Oou.writeObject(ChatServer.MessList.get(posled));
 				} catch (IOException ex) {
 					// System.out.println("DemIn " + Me.Nick +
-					// " - Трабла с исходящими");
+					// " - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 				}
 				posled++;
 			}
