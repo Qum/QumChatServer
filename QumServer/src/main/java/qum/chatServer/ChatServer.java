@@ -31,7 +31,7 @@ public class ChatServer {
 			+ tempNuberOfClientThtead;
 		Socket S = SS.accept();
 		MyLogger.info("New connect nubmer - " + tempNuberOfClientThtead);
-//		Thread ClientUnitTh = new Thread(
+
 		ClientUnit ClientUnitTh = new ClientUnit(
 			tempNameOfClientThtead, S);
 		ClientThreads.put(tempNameOfClientThtead, ClientUnitTh);

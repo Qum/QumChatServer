@@ -87,20 +87,7 @@ public class ClientUnit extends Thread {
 		    } else if (BuffMess.getServiceCode() == FILE_REQUEST_SUCCESS) {
 			doNotifySander(BuffMess.getValue1(), true);
 		    } else if (BuffMess.getServiceCode() == LOGOUT) {
-			if (onlineStatus) {
-			    ChatServer.MessList.add(new Mess(dateFormat
-				    .format(date) + " " + "SYS ",
-				    ">>>>>>>>>>>> " + userName + " - logout."));
-			    onlineStatus = false;
-			    if (!ChatServer.ClientThreads
-				    .remove(userName, this)) {
-				MyLogger.error("not removed from the collection!");
-			    } else {
-				MyLogger.debug(userName
-					+ " has been removed from collection.");
-			    }
-			}
-			ygeSoobwilProVuhod = true;
+			doLogot();
 		    }
 		} else if (onlineStatus) {
 		    BuffMess.setValue1(dateFormat.format(date) + " " + userName);
@@ -132,7 +119,7 @@ public class ClientUnit extends Thread {
 		if (!ygeSoobwilProVuhod) {
 		    ChatServer.MessList.add(new Mess(dateFormat.format(date)
 			    + " " + "SYS ", ">>>>>>>>>>>> " + userName
-			    + " - DISCONNECT"));
+			    + " - DISCONNECTED"));
 		    onlineStatus = false;
 		    ygeSoobwilProVuhod = true;
 		}
@@ -147,18 +134,19 @@ public class ClientUnit extends Thread {
 	}
     }
 
-    private void doNotifySander(String senderNick, boolean reciverAnswer) // notifies
-									  // the
-									  // sender
-									  // thread
-									  // of
-									  // the
-									  // decision
-									  // on
-									  // who
-									  // receives
-									  // the
-									  // file
+    private void doLogot() {
+	if (onlineStatus) {
+	    ChatServer.MessList.add(new Mess(dateFormat.format(date) + " "
+		    + "SYS ", ">>>>>>>>>>>> " + userName + " - logout."));
+	}
+	ChatServer.ClientThreads.remove(userName, this);
+	onlineStatus = false;
+	ygeSoobwilProVuhod = true;
+    }
+
+    // notifies the sender thread of the decision on who receives the file
+
+    private void doNotifySander(String senderNick, boolean reciverAnswer)
 	    throws IOException {
 
 	if (reciverAnswer == true) {
@@ -171,31 +159,24 @@ public class ClientUnit extends Thread {
 	}
     }
 
-    public void doFileRecivRequest(String sender, String fileName, long size, // send
-									      // to
-									      // our
-									      // client
-									      // request
-									      // for
-									      // recive
-									      // files
+    // send to our client request for recive files
+    public void doFileRecivRequest(String sender, String fileName, long size,
 	    String Ip) throws IOException {
 
 	Oou.writeObject(new Mess(sender, fileName, size, Ip, FILE_REQUEST));
     }
 
-    public void iWantSendFile(String reciverNick) throws IOException { // init
-								       // question
-								       // process
+    // init question process
+    public void iWantSendFile(String reciverNick) throws IOException {
 
 	ChatServer.ClientThreads.get(reciverNick).doFileRecivRequest(
 		this.userName, BuffMess.getValue2(), BuffMess.getFileSize(),
 		Sock.getInetAddress().getHostAddress());
     }
 
+    // return answer to sander thread of ClientUnit
     private void returnRequestAnswer(String reciverName, String ip,
-	    boolean answer)// return answer to sander thread of ClientUnit
-	    throws IOException {
+	    boolean answer) throws IOException {
 	if (answer == true) {
 	    Oou.writeObject(new Mess(reciverName, ip, FILE_REQUEST_SUCCESS));
 	} else if (answer == false) {
