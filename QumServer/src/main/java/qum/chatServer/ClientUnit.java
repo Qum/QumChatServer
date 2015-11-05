@@ -37,7 +37,6 @@ public class ClientUnit extends Thread {
     public Mess BuffMess;
     private String myTempName;
     private String userName;
-    private String userPass;
     private Connection con;
     private boolean onlineStatus, ygeSoobwilProVuhod;
 
@@ -87,7 +86,7 @@ public class ClientUnit extends Thread {
 		    } else if (BuffMess.getServiceCode() == FILE_REQUEST_SUCCESS) {
 			doNotifySander(BuffMess.getValue1(), true);
 		    } else if (BuffMess.getServiceCode() == LOGOUT) {
-			doLogot();
+			doLogOut();
 		    }
 		} else if (onlineStatus) {
 		    BuffMess.setValue1(dateFormat.format(date) + " " + userName);
@@ -134,7 +133,7 @@ public class ClientUnit extends Thread {
 	}
     }
 
-    private void doLogot() {
+    private void doLogOut() {
 	if (onlineStatus) {
 	    ChatServer.MessList.add(new Mess(dateFormat.format(date) + " "
 		    + "SYS ", ">>>>>>>>>>>> " + userName + " - logout."));
@@ -242,7 +241,7 @@ public class ClientUnit extends Thread {
 		    MyLogger.debug("Clientunit.doAuth in "
 			    + (userName == null ? myTempName : userName)
 			    + " is not online");
-		    // change tem name for our thread to the name of which is
+		    // change temp name for our thread to the name of which is
 		    // given after authorized
 		    if (ChatServer.ClientThreads.remove(myTempName, this)) {
 			ChatServer.ClientThreads
@@ -252,7 +251,7 @@ public class ClientUnit extends Thread {
 			ChatServer.MessList.add(new Mess(dateFormat
 				.format(date) + " " + "SYS ", ">>>>>>>>>>>>"
 				+ userName + " - online."));
-			Oou.writeObject(new Mess("SYS", "- online.",
+			Oou.writeObject(new Mess("SYS", userName,
 				SUCCESS_AUTH_SUCCESS_ONLINE));
 			MyLogger.debug("Clientunit.doAuth in "
 				+ (userName == null ? myTempName : userName)
@@ -312,6 +311,7 @@ public class ClientUnit extends Thread {
 		: false);
     }
 
+    // Check
     private boolean userExistInDb() {
 
 	PreparedStatement ps;

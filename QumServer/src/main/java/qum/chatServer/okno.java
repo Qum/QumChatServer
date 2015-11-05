@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.JFileChooser;
@@ -50,6 +51,7 @@ public class okno extends JPanel {
     static int win_HEIGHT = 110;
 
     okno() {
+
 	super(new GridBagLayout());
 	String root_papka = System.getProperty("user.home");
 	File propdr = new File(root_papka, ".chatik");
