@@ -16,7 +16,7 @@ public class DbFactory {
 	    instance = new DbFactory();
 	} catch (Exception e) {
 	    throw new RuntimeException(
-		    "��� �������� ������� �DbFactory� ��������� ������");
+		    "all bad");
 	}
     }
 
@@ -77,13 +77,12 @@ public class DbFactory {
 	}
 	ConnPool.setJdbcUrl("jdbc:mysql://localhost/qumserver");
 	ConnPool.setUser("root");
-	ConnPool.setPassword("toor");
+	ConnPool.setPassword("UYVGTYUF45645DYRD");
 
 	/* Test the connection */
 	try {
 	    ConnPool.getConnection().close();
 	} catch (SQLException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
 

@@ -15,12 +15,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
 
 import qum.messageClass.Mess;
+import qum.util.Base64;
+import qum.util.IoClosing;
 
 public class ClientUnit extends Thread {
 
@@ -37,8 +38,7 @@ public class ClientUnit extends Thread {
     public Mess BuffMess;
     private String myTempName;
     private String userName;
-    private Connection con;
-    private boolean onlineStatus, ygeSoobwilProVuhod;
+    private boolean onlineStatus, alreadyOffline;
 
     final static int AUTH_REQUEST = 1;
     final static int REGISTER_REQUEST = 2;
@@ -55,16 +55,12 @@ public class ClientUnit extends Thread {
     private final String RegisterQuery = "INSERT INTO users(login,pass,acc_lvl,last_ip,email) VALUES(?,?,?,?,?)";
     private final String CheckUserExist = "SELECT * FROM users WHERE login=(?)";
 
-    // private final String CheckUserExist =
-    // "SELECT * FROM users WHERE login I ?";
-
     ClientUnit(String tempName, Socket s) throws IOException {
 	myTempName = tempName;
 	Sock = s;
 	Oou = new ObjectOutputStream(s.getOutputStream());
 	Oin = new ObjectInputStream(s.getInputStream());
-	MyLogger.debug("ClientUnit "
-		+ (userName == null ? myTempName : userName)
+	MyLogger.debug("ClientUnit " + (userName == null ? myTempName : userName)
 		+ " srart with IP " + Sock.getInetAddress().getHostAddress());
     }
 
@@ -74,8 +70,7 @@ public class ClientUnit extends Thread {
 	    while (true) {
 		BuffMess = (Mess) Oin.readObject();
 		if (BuffMess.getServiceCode() > 0) {
-		    MyLogger.debug("ClientUnit "
-			    + (userName == null ? myTempName : userName) + " "
+		    MyLogger.debug("ClientUnit " + (userName == null ? myTempName : userName) + " "
 			    + BuffMess.getServiceCode());
 		    if (BuffMess.getServiceCode() == AUTH_REQUEST) {
 			doAuth();
@@ -90,37 +85,29 @@ public class ClientUnit extends Thread {
 		    }
 		} else if (onlineStatus) {
 		    BuffMess.setValue1(dateFormat.format(date) + " " + userName);
-		    ChatServer.MessList.add(BuffMess);
+		    ChatServer.incomingMessagesList.add(BuffMess);
 		}
 	    }
 	} catch (SocketException ex) {
-	    MyLogger.warn("ClientUnit "
-		    + (userName == null ? myTempName : userName)
+	    MyLogger.warn("ClientUnit " + (userName == null ? myTempName : userName)
 		    + " throw SocketException" + ex);
 	    return;
 	}
 
 	catch (ClassNotFoundException e) {
-	    MyLogger.warn("Clientunit "
-		    + (userName == null ? myTempName : userName)
-		    + " throw ClassNotFoundException" + e);
-	    e.printStackTrace();
 	} catch (IOException e) {
-	    MyLogger.warn("Clientunit "
-		    + (userName == null ? myTempName : userName)
+	    MyLogger.warn("Clientunit " + (userName == null ? myTempName : userName)
 		    + " throw IOException " + e);
 	    e.printStackTrace();
 	} finally {
-	    MyLogger.info("Clientunit "
-		    + (userName == null ? myTempName : userName)
+	    MyLogger.info("Clientunit " + (userName == null ? myTempName : userName)
 		    + " enter in finally block");
 	    if (onlineStatus) {
-		if (!ygeSoobwilProVuhod) {
-		    ChatServer.MessList.add(new Mess(dateFormat.format(date)
-			    + " " + "SYS ", ">>>>>>>>>>>> " + userName
-			    + " - DISCONNECTED"));
+		if (!alreadyOffline) {
+		    ChatServer.incomingMessagesList.add(new Mess(dateFormat.format(date) + " " + "SYS ",
+			    ">>>>>>>>>>>> " + userName + " - DISCONNECTED"));
 		    onlineStatus = false;
-		    ygeSoobwilProVuhod = true;
+		    alreadyOffline = true;
 		}
 	    }
 	    try {
@@ -135,32 +122,30 @@ public class ClientUnit extends Thread {
 
     private void doLogOut() {
 	if (onlineStatus) {
-	    ChatServer.MessList.add(new Mess(dateFormat.format(date) + " "
-		    + "SYS ", ">>>>>>>>>>>> " + userName + " - logout."));
+	    ChatServer.incomingMessagesList.add(new Mess(dateFormat.format(date) + " " + "SYS ",
+		    ">>>>>>>>>>>> " + userName + " - logout."));
 	}
-	ChatServer.ClientThreads.remove(userName, this);
+	ChatServer.ClientThreads.remove(userName);
 	onlineStatus = false;
-	ygeSoobwilProVuhod = true;
+	alreadyOffline = true;
     }
 
     // notifies the sender thread of the decision on who receives the file
 
-    private void doNotifySander(String senderNick, boolean reciverAnswer)
-	    throws IOException {
+    private void doNotifySander(String senderNick, boolean reciverAnswer) throws IOException {
 
 	if (reciverAnswer == true) {
-	    ChatServer.ClientThreads.get(senderNick).returnRequestAnswer(
-		    userName, Sock.getInetAddress().getHostAddress(),
-		    reciverAnswer);
+	    ChatServer.ClientThreads.get(senderNick).returnRequestAnswer(userName,
+		    Sock.getInetAddress().getHostAddress(), reciverAnswer);
 	} else {
-	    ChatServer.ClientThreads.get(senderNick).returnRequestAnswer(
-		    userName, "", reciverAnswer);
+	    ChatServer.ClientThreads.get(senderNick).returnRequestAnswer(userName, "",
+		    reciverAnswer);
 	}
     }
 
     // send to our client request for recive files
-    public void doFileRecivRequest(String sender, String fileName, long size,
-	    String Ip) throws IOException {
+    public void doFileRecivRequest(String sender, String fileName, long size, String Ip)
+	    throws IOException {
 
 	Oou.writeObject(new Mess(sender, fileName, size, Ip, FILE_REQUEST));
     }
@@ -168,14 +153,14 @@ public class ClientUnit extends Thread {
     // init question process
     public void iWantSendFile(String reciverNick) throws IOException {
 
-	ChatServer.ClientThreads.get(reciverNick).doFileRecivRequest(
-		this.userName, BuffMess.getValue2(), BuffMess.getFileSize(),
+	ChatServer.ClientThreads.get(reciverNick).doFileRecivRequest(this.userName,
+		BuffMess.getValue2(), BuffMess.getFileSize(),
 		Sock.getInetAddress().getHostAddress());
     }
 
     // return answer to sander thread of ClientUnit
-    private void returnRequestAnswer(String reciverName, String ip,
-	    boolean answer) throws IOException {
+    private void returnRequestAnswer(String reciverName, String ip, boolean answer)
+	    throws IOException {
 	if (answer == true) {
 	    Oou.writeObject(new Mess(reciverName, ip, FILE_REQUEST_SUCCESS));
 	} else if (answer == false) {
@@ -185,9 +170,10 @@ public class ClientUnit extends Thread {
 
     private void doRegister() throws IOException {
 	if (!userExistInDb()) {
-	    MyLogger.debug("Clientunit.doRegister in "
-		    + (userName == null ? myTempName : userName)
+	    MyLogger.debug("Clientunit.doRegister in " + (userName == null ? myTempName : userName)
 		    + " get conn from jdbc conn pool");
+	    Connection con = null;
+
 	    try {
 		con = DbFactory.getInstance().getCon();
 		PreparedStatement ps = con.prepareStatement(RegisterQuery);
@@ -199,60 +185,46 @@ public class ClientUnit extends Thread {
 		ps.execute();
 		onlineStatus = true;
 		userName = BuffMess.getValue1();
-		ChatServer.MessList.add(new Mess(dateFormat.format(date) + " "
-			+ "SYS ", ">>>>>>>>>>>>" + userName + " - online"));
-		Oou.writeObject(new Mess(BuffMess.getValue1(), " ",
-			REGISTER_SUCCESS));
+		ChatServer.incomingMessagesList.add(new Mess(dateFormat.format(date) + " " + "SYS ",
+			">>>>>>>>>>>>" + userName + " - online"));
+		Oou.writeObject(new Mess(BuffMess.getValue1(), " ", REGISTER_SUCCESS));
 	    } catch (SQLException e) {
 		MyLogger.warn("Clientunit.doRegister in  "
-			+ (userName == null ? myTempName : userName)
-			+ " throw SQLException " + e);
+			+ (userName == null ? myTempName : userName) + " throw SQLException " + e);
 		e.printStackTrace();
 	    } finally {
-		try {
-		    con.close();
-		} catch (SQLException e) {
-		    e.printStackTrace();
-		}
+		IoClosing.silentClose(con);
 	    }
 	} else {
 	    Oou.writeObject(new Mess(" ", " ", REGISTER_FAIL));
-	    MyLogger.debug("Clientunit.doRegister in "
-		    + (userName == null ? myTempName : userName)
+	    MyLogger.debug("Clientunit.doRegister in " + (userName == null ? myTempName : userName)
 		    + " tried register existing user");
 	}
     }
 
     private void doAuth() throws IOException {
-	MyLogger.info("Clientunit.doAuth in "
-		+ (userName == null ? myTempName : userName));
+	MyLogger.info("Clientunit.doAuth in " + (userName == null ? myTempName : userName));
 	if (userExistInDb()) {
 	    if (checkAuthData()) {
-		MyLogger.debug("Clientunit.doAuth in "
-			+ (userName == null ? myTempName : userName)
+		MyLogger.debug("Clientunit.doAuth in " + (userName == null ? myTempName : userName)
 			+ " username-pass confirmed");
 		if (ChatServer.ClientThreads.containsKey(BuffMess.getValue1())) {
 		    Oou.writeObject(new Mess("SYS", "this user already online",
 			    SUCCESS_AUTH_ALREADY_ONLINE));
 		    MyLogger.debug("Clientunit.doAuth in "
-			    + (userName == null ? myTempName : userName)
-			    + " is already online");
+			    + (userName == null ? myTempName : userName) + " is already online");
 		} else {
 		    MyLogger.debug("Clientunit.doAuth in "
-			    + (userName == null ? myTempName : userName)
-			    + " is not online");
+			    + (userName == null ? myTempName : userName) + " is not online");
 		    // change temp name for our thread to the name of which is
 		    // given after authorized
-		    if (ChatServer.ClientThreads.remove(myTempName, this)) {
-			ChatServer.ClientThreads
-				.put(BuffMess.getValue1(), this);
+		    if (ChatServer.ClientThreads.remove(myTempName) != null) {
+			ChatServer.ClientThreads.put(BuffMess.getValue1(), this);
 			this.userName = BuffMess.getValue1();
 			onlineStatus = true;
-			ChatServer.MessList.add(new Mess(dateFormat
-				.format(date) + " " + "SYS ", ">>>>>>>>>>>>"
-				+ userName + " - online."));
-			Oou.writeObject(new Mess("SYS", userName,
-				SUCCESS_AUTH_SUCCESS_ONLINE));
+			ChatServer.incomingMessagesList.add(new Mess(dateFormat.format(date) + " " + "SYS ",
+				">>>>>>>>>>>>" + userName + " - online."));
+			Oou.writeObject(new Mess("SYS", userName, SUCCESS_AUTH_SUCCESS_ONLINE));
 			MyLogger.debug("Clientunit.doAuth in "
 				+ (userName == null ? myTempName : userName)
 				+ " is success get online");
@@ -264,14 +236,12 @@ public class ClientUnit extends Thread {
 		}
 	    } else {
 		Oou.writeObject(new Mess("SYS", "wrong auth data", AUTH_FAIL));
-		MyLogger.debug("Clientunit.doAuth in "
-			+ (userName == null ? myTempName : userName)
+		MyLogger.debug("Clientunit.doAuth in " + (userName == null ? myTempName : userName)
 			+ " username-pass not confirmed");
 	    }
 	} else {
 	    Oou.writeObject(new Mess("SYS", "wrong auth data", AUTH_FAIL));
-	    MyLogger.debug("Clientunit.doAuth in "
-		    + (userName == null ? myTempName : userName)
+	    MyLogger.debug("Clientunit.doAuth in " + (userName == null ? myTempName : userName)
 		    + " username not existing");
 	}
     }
@@ -279,14 +249,16 @@ public class ClientUnit extends Thread {
     private boolean checkAuthData() {
 
 	String resultPass = null;
-	PreparedStatement ps;
-	ResultSet rs;
+	Connection con = null;
+	PreparedStatement ps = null;
+	;
+	ResultSet rs = null;
+	;
 
 	try {
 	    con = DbFactory.getInstance().getCon();
 	    MyLogger.debug("Clientunit.checkAuthData in "
-		    + (userName == null ? myTempName : userName)
-		    + " get conn from jdbc conn pool");
+		    + (userName == null ? myTempName : userName) + " get conn from jdbc conn pool");
 	    ps = con.prepareStatement(CheckUserExist);
 	    ps.setString(1, BuffMess.getValue1());
 	    ps.execute();
@@ -296,32 +268,25 @@ public class ClientUnit extends Thread {
 	    }
 	} catch (SQLException e) {
 	    MyLogger.info("Clientunit.checkAuthData in "
-		    + (userName == null ? myTempName : userName)
-		    + " FAIL SQL =====***");
+		    + (userName == null ? myTempName : userName) + " FAIL SQL =====***");
 	    e.printStackTrace();
 	} finally {
-	    try {
-		con.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
+	    IoClosing.silentClose(rs,ps,con);
 	}
 
-	return (resultPass.equals(cryptPassword(BuffMess.getValue2())) ? true
-		: false);
+	return (resultPass.equals(cryptPassword(BuffMess.getValue2())) ? true : false);
     }
 
     // Check
     private boolean userExistInDb() {
-
-	PreparedStatement ps;
-	ResultSet rs;
+	Connection con = null;
+	PreparedStatement ps = null;
+	ResultSet rs = null;
 	String result = null;
 	try {
 	    con = DbFactory.getInstance().getCon();
 	    MyLogger.info("Clientunit.userExistInDb in "
-		    + (userName == null ? myTempName : userName)
-		    + " get conn from jdbc conn pool");
+		    + (userName == null ? myTempName : userName) + " get conn from jdbc conn pool");
 	    ps = con.prepareStatement(CheckUserExist);
 	    ps.setString(1, BuffMess.getValue1());
 	    ps.execute();
@@ -333,15 +298,10 @@ public class ClientUnit extends Thread {
 		    + (userName == null ? myTempName : userName) + " " + result);
 	} catch (SQLException e) {
 	    MyLogger.info("Clientunit.userExistInDb in "
-		    + (userName == null ? myTempName : userName)
-		    + " FAIL SQL =====**");
+		    + (userName == null ? myTempName : userName) + " FAIL SQL =====**");
 	    e.printStackTrace();
 	} finally {
-	    try {
-		con.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
+	    IoClosing.silentClose(rs,ps,con);
 	}
 	return (result != null ? true : false);
     }

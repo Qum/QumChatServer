@@ -15,10 +15,8 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.Properties;
 
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -31,8 +29,7 @@ import javax.swing.JTextField;
 
 import qum.messageClass.Mess;
 
-public class okno extends JPanel {
-    // implements ActionListener {
+public class UserWindow extends JPanel {
 
     static DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -50,9 +47,22 @@ public class okno extends JPanel {
     static int win_WIDTH = 110;
     static int win_HEIGHT = 110;
 
-    okno() {
+    UserWindow() {
 
 	super(new GridBagLayout());
+	Properties property = new Properties();
+	try {
+	    property.setProperty("haza", "baza");
+	    property.store(new FileOutputStream("sd.sd"), "xz");
+
+	    property.load(new FileInputStream("sd.sd"));
+	    System.err.println(property.get("haza"));
+	} catch (FileNotFoundException e2) {
+	    e2.printStackTrace();
+	} catch (IOException e2) {
+	    e2.printStackTrace();
+	}
+
 	String root_papka = System.getProperty("user.home");
 	File propdr = new File(root_papka, ".chatik");
 	if (!propdr.exists())
@@ -60,8 +70,6 @@ public class okno extends JPanel {
 	prop = new File(propdr, "chat.ini");
 	Properties def_sett = new Properties();
 	def_sett.put("Nick", "");
-	// def_sett.put("������ ����", "400");
-	// def_sett.put("������ ����", "250");
 
 	sett = new Properties(def_sett);
 
@@ -95,8 +103,7 @@ public class okno extends JPanel {
 
 		String text = Tf.getText();
 		try {
-		    Client.Oou.writeObject(new Mess(dateFormat.format(date)
-			    + " " + MyNick, text));
+		    Client.Oou.writeObject(new Mess(dateFormat.format(date) + " " + MyNick, text));
 		} catch (IOException e1) {
 		    System.out.println("Okno Clienta");
 		    e1.printStackTrace();
@@ -135,7 +142,7 @@ public class okno extends JPanel {
 	final JFrame frame = new JFrame("Server 1.0.3");
 
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	frame.add(new okno());
+	frame.add(new UserWindow());
 	frame.setVisible(true);
 	frame.pack();
 
@@ -148,25 +155,16 @@ public class okno extends JPanel {
 	Menu.add(NickPeron);
 	Menu.addSeparator();
 
-
 	NickPeron.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		buffnick = JOptionPane.showInputDialog("enter name");
 		if (buffnick.equals("Admin") || buffnick.equals("root")) {
-		    JOptionPane
-			    .showMessageDialog(
-				    null,
-				    "<html>wrong</html>",
-				    "information",
-				    JOptionPane.YES_NO_CANCEL_OPTION);
+		    JOptionPane.showMessageDialog(null, "<html>wrong</html>", "information",
+			    JOptionPane.YES_NO_CANCEL_OPTION);
 		    actionPerformed(e);
 		} else if (buffnick.isEmpty()) {
-		    JOptionPane
-			    .showMessageDialog(
-				    null,
-				    "<html><h1><i>wrong!</i></h1></html>",
-				    "information",
-				    JOptionPane.YES_NO_CANCEL_OPTION);
+		    JOptionPane.showMessageDialog(null, "<html><h1><i>wrong!</i></h1></html>",
+			    "information", JOptionPane.YES_NO_CANCEL_OPTION);
 		    actionPerformed(e);
 		} else
 		    MyNick = buffnick;
@@ -196,7 +194,6 @@ public class okno extends JPanel {
 		try {
 		    Thread.sleep(100);
 		} catch (InterruptedException e) {
-		    // TODO Auto-generated catch block
 		    e.printStackTrace();
 		}
 		new Thread(new Client()).start();

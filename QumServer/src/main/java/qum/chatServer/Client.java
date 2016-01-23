@@ -33,9 +33,7 @@ public class Client implements Runnable {
 	System.out.println(Thread.currentThread()
 		+ "SockManager : sockStart enter in run");
 	GetSocket();
-
 	GetStreams();
-
 	Work();
     }
 
@@ -57,7 +55,7 @@ public class Client implements Runnable {
 		    ClientUnit.AUTH_REQUEST));
 	    while (true) {
 		BuffMesObj = (Mess) Oin.readObject();
-		okno.Ta.append(BuffMesObj.getValue1() + " : "
+		UserWindow.Ta.append(BuffMesObj.getValue1() + " : "
 			+ BuffMesObj.getValue2() + newline);
 	    }
 	} catch (IOException e) {
@@ -80,7 +78,7 @@ public class Client implements Runnable {
 			Sock = new Socket(InetAddress.getByName("109.87.60.178"), 9090);
 			return Sock;
 		} catch (IOException e) {
-			okno.Ta.append(("SYS : connection lost !!"));
+			UserWindow.Ta.append(("SYS : connection lost !!"));
 			try {
 				Sock.close();
 			} catch (IOException e1) {

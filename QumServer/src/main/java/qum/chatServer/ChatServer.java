@@ -15,32 +15,29 @@ import qum.messageClass.Mess;
 public class ChatServer {
 
     public static final Logger MyLogger = Logger.getLogger(ChatServer.class);
-    public static List<Mess> MessList = new CopyOnWriteArrayList<Mess>();
+    public static List<Mess> incomingMessagesList = new CopyOnWriteArrayList<Mess>();
     public static Map<String, ClientUnit> ClientThreads = new ConcurrentHashMap<String, ClientUnit>();
     private static int tempNuberOfClientThtead = 0;
     private static String tempNameOfClientThtead;
 
-    public static void main(String[] args) {
-	okno.main(args);
+    public static void main(String []args) {
+	UserWindow.main(args);
 	ServerSocket SS;
 	try {
 	    SS = new ServerSocket(9090, 350);
 	    while (true) {
 		tempNuberOfClientThtead++;
-		tempNameOfClientThtead = "Client Thread number "
-			+ tempNuberOfClientThtead;
+		tempNameOfClientThtead = "Client Thread number " + tempNuberOfClientThtead;
 		Socket S = SS.accept();
 		MyLogger.info("New connect nubmer - " + tempNuberOfClientThtead);
 
-		ClientUnit ClientUnitTh = new ClientUnit(
-			tempNameOfClientThtead, S);
-		ClientThreads.put(tempNameOfClientThtead, ClientUnitTh);
-		ClientUnitTh.start();
+		ClientUnit ClientUnitThread = new ClientUnit(tempNameOfClientThtead, S);
+		ClientThreads.put(tempNameOfClientThtead, ClientUnitThread);
+		ClientUnitThread.start();
 		MyLogger.info("Start ClientUnitTh " + tempNuberOfClientThtead);
 	    }
 	} catch (IOException e) {
-	    MyLogger.warn("ChatServer throw IOException on "
-		    + tempNameOfClientThtead);
+	    MyLogger.warn("ChatServer throw IOException on " + tempNameOfClientThtead);
 	    e.printStackTrace();
 	}
     }

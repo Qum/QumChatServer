@@ -4,41 +4,34 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 public class DeamonOutMess implements Runnable {
-	int posled = 0;
-	private ObjectOutputStream Oou;
+    int posled = 0;
+    private ObjectOutputStream Oou;
 
-	DeamonOutMess(ObjectOutputStream O) throws IOException {
-		Oou = O;
-		// new ObjectOutputStream(s.getOutputStream());
+    DeamonOutMess(ObjectOutputStream O) throws IOException {
+	Oou = O;
+    }
+
+    public void run() {
+	if (ChatServer.incomingMessagesList.size() > 10) {
+	    posled = ChatServer.incomingMessagesList.size() - 10;
+	} else {
+	    posled = ChatServer.incomingMessagesList.size();
 	}
-
-	public void run() {
-		if (ChatServer.MessList.size() > 10) {
-			posled = ChatServer.MessList.size() - 10;
+	while (true) {
+	    try {
+		Thread.sleep(50);
+	    } catch (InterruptedException e) {
+		e.printStackTrace();
+	    }
+	    while (posled < ChatServer.incomingMessagesList.size()) {
+		try {
+		    if (ChatServer.incomingMessagesList.get(posled).getServiceCode() == 0) {
+			Oou.writeObject(ChatServer.incomingMessagesList.get(posled));
+		    }
+		} catch (IOException ex) {
 		}
-		posled = ChatServer.MessList.size();
-		while (true) {
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			while (posled < ChatServer.MessList.size()
-					&& (0 == ChatServer.MessList.get(posled).getServiceCode())) {
-
-				// Mess Me = Serv.MessList.get(posled);
-				// if (Me.Meseg.contains(" >>>>>>>>> "))
-				// Me.Meseg += " " + getIP TO DO ;
-				try {
-					Oou.writeObject(ChatServer.MessList.get(posled));
-				} catch (IOException ex) {
-					// System.out.println("DemIn " + Me.Nick +
-					// " - ������ � ����������");
-				}
-				posled++;
-			}
-
-		}
-
+		posled++;
+	    }
 	}
+    }
 }
